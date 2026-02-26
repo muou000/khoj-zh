@@ -1,6 +1,7 @@
 import { App, SuggestModal, request, MarkdownRenderer, Instruction, Platform, Notice } from 'obsidian';
 import { KhojSetting } from 'src/settings';
 import { supportedBinaryFileTypes, createNoteAndCloseModal, getFileFromPath, getLinkToEntry, supportedImageFilesTypes } from 'src/utils';
+import { t } from 'src/i18n';
 
 export interface SearchResult {
     entry: string;
@@ -70,25 +71,25 @@ export class KhojSearchModal extends SuggestModal<SearchResult> {
         const modalInstructions: Instruction[] = [
             {
                 command: '↑↓',
-                purpose: 'to navigate',
+                purpose: t('search.modal.instructions.navigate'),
             },
             {
                 command: '↵',
-                purpose: 'to open',
+                purpose: t('search.modal.instructions.open'),
             },
             {
                 command: Platform.isMacOS ? 'cmd ↵' : 'ctrl ↵',
-                purpose: 'to rerank',
+                purpose: t('search.modal.instructions.rerank'),
             },
             {
                 command: 'esc',
-                purpose: 'to dismiss',
+                purpose: t('search.modal.instructions.dismiss'),
             },
         ]
         this.setInstructions(modalInstructions);
 
         // Set Placeholder Text for Modal
-        this.setPlaceholder('Search with Khoj...');
+        this.setPlaceholder(t('search.modal.placeholder'));
 
         // Initialize allFiles with files in vault
         this.allFiles = this.app.vault.getFiles().map(file => ({
@@ -148,7 +149,7 @@ export class KhojSearchModal extends SuggestModal<SearchResult> {
         if (this.isFileFilterMode && fileFilterMatch) {
             const partialPath = fileFilterMatch[1] || '';
             // Update title for file filter mode
-            this.resultsTitle.setText("Select a file:");
+            this.resultsTitle.setText(t('search.modal.fileFilterTitle'));
             // Return filtered file suggestions
             return this.allFiles
                 .filter(file => file.path.toLowerCase().includes(partialPath.toLowerCase().trim()))
@@ -161,7 +162,7 @@ export class KhojSearchModal extends SuggestModal<SearchResult> {
 
         // Update title for search results
         if (query.trim()) {
-            this.resultsTitle.setText("Search results:");
+            this.resultsTitle.setText(t('search.modal.resultsTitle'));
         } else {
             this.resultsTitle.setText("");
         }
@@ -271,7 +272,7 @@ export class KhojSearchModal extends SuggestModal<SearchResult> {
                 this.rerank = false
             }
             else {
-                this.resultContainerEl.setText('Cannot find similar notes for non-markdown files');
+                this.resultContainerEl.setText(t('search.modal.similarNotesError'));
             }
         }
     }
@@ -302,7 +303,7 @@ export class KhojSearchModal extends SuggestModal<SearchResult> {
         // Add a visual indication for files not in vault
         if (!result.inVault) {
             fileEl.createSpan({
-                text: " (not in vault)",
+                text: t('search.modal.fileNotInVault'),
                 cls: "khoj-result-file-status"
             });
         }
@@ -350,7 +351,7 @@ export class KhojSearchModal extends SuggestModal<SearchResult> {
 
         // Only open files that are in the vault
         if (!result.inVault) {
-            new Notice("This file is not in your vault");
+            new Notice(t('search.modal.fileNotInVaultNotice'));
             return;
         }
 

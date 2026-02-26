@@ -2,6 +2,7 @@ import { ItemView, WorkspaceLeaf } from 'obsidian';
 import { KhojSetting } from 'src/settings';
 import { KhojView, populateHeaderPane } from './utils';
 import Khoj from 'src/main';
+import { t } from 'src/i18n';
 
 export abstract class KhojPaneView extends ItemView {
     setting: KhojSetting;
@@ -37,6 +38,10 @@ export abstract class KhojPaneView extends ItemView {
         let similarNavSvgEl = headerEl.getElementsByClassName("khoj-nav-icon-similar")[0]?.firstElementChild;
         if (!!similarNavSvgEl) similarNavSvgEl.id = "similar-nav-icon-svg";
     }
+
+    abstract getViewType(): string;
+    abstract getDisplayText(): string;
+    abstract getIcon(): string;
 
     async activateView(viewType: string) {
         const { workspace } = this.app;

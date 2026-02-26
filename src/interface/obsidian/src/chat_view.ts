@@ -5,6 +5,7 @@ import { KhojView, createCopyParentText, getLinkToEntry, pasteTextAtCursor } fro
 import { KhojSearchModal } from 'src/search_modal';
 import Khoj from 'src/main';
 import { FileInteractions, EditBlock } from 'src/interact_with_files';
+import { t } from 'src/i18n';
 
 export interface ChatJsonResult {
     image?: string;
@@ -74,21 +75,21 @@ export class KhojChatView extends KhojPaneView {
     currentMessageIndex: number = -1;  // Track current message index in userMessages array
     voiceChatActive: boolean = false; // Flag to track if voice chat is active
     private currentUserInput: string = ""; // Stores the current user input that is being typed in chat
-    private startingMessage: string = this.getLearningMoment();
+    private startingMessage: string = t('chat.input.placeholder.default');
     chatMessageState: ChatMessageState;
     private agents: Agent[] = [];
     private currentAgent: string | null = null;
     private fileAccessMode: 'none' | 'read' | 'write' = 'read'; // Track the current file access mode
     // TODO: Only show modes available on server and to current agent
     private chatModes: ChatMode[] = [
-        { value: "default", label: "Default", iconName: "target", command: "/default" },
-        { value: "general", label: "General", iconName: "message-circle", command: "/general" },
-        { value: "notes", label: "Notes", iconName: "file-text", command: "/notes" },
-        { value: "online", label: "Online", iconName: "globe", command: "/online" },
-        { value: "code", label: "Code", iconName: "code", command: "/code" },
-        { value: "image", label: "Image", iconName: "image", command: "/image" },
-        { value: "research", label: "Research", iconName: "microscope", command: "/research" },
-        { value: "operator", label: "Operator", iconName: "laptop", command: "/operator" }
+        { value: "default", label: t('chat.mode.default'), iconName: "target", command: "/default" },
+        { value: "general", label: t('chat.mode.general'), iconName: "message-circle", command: "/general" },
+        { value: "notes", label: t('chat.mode.notes'), iconName: "file-text", command: "/notes" },
+        { value: "online", label: t('chat.mode.online'), iconName: "globe", command: "/online" },
+        { value: "code", label: t('chat.mode.code'), iconName: "code", command: "/code" },
+        { value: "image", label: t('chat.mode.image'), iconName: "image", command: "/image" },
+        { value: "research", label: t('chat.mode.research'), iconName: "microscope", command: "/research" },
+        { value: "operator", label: t('chat.mode.operator'), iconName: "laptop", command: "/operator" }
     ];
     private editRetryCount: number = 0;  // Track number of retries for edit blocks
     private fileInteractions: FileInteractions;
@@ -142,7 +143,7 @@ export class KhojChatView extends KhojPaneView {
     }
 
     getDisplayText(): string {
-        return "Khoj Chat";
+        return t('view.chat.title');
     }
 
     getIcon(): string {
@@ -184,7 +185,7 @@ export class KhojChatView extends KhojPaneView {
 
             this.userMessages.push(user_message);
             // Update starting message after sending a new message
-            this.startingMessage = this.getLearningMoment();
+            this.startingMessage = t('chat.input.placeholder.default');
             input_el.placeholder = this.startingMessage;
 
             // Clear input and resize
@@ -230,7 +231,7 @@ export class KhojChatView extends KhojPaneView {
 
             // Add default option
             headerAgentSelect.createEl("option", {
-                text: "Default Agent",
+                text: t('chat.agent.default'),
                 value: "khoj"
             });
 
@@ -261,10 +262,10 @@ export class KhojChatView extends KhojPaneView {
         let inputRow = contentEl.createDiv("khoj-input-row");
 
         let chatSessions = inputRow.createEl("button", {
-            text: "Chat Sessions",
+            text: t('chat.sessions.button'),
             attr: {
                 class: "khoj-input-row-button clickable-icon",
-                title: "Show Conversations (Ctrl+Alt+O)",
+                title: t('chat.sessions.button.title'),
             },
         })
         chatSessions.addEventListener('click', async (_) => { await this.toggleChatSessions() });
@@ -272,26 +273,26 @@ export class KhojChatView extends KhojPaneView {
 
         // Add file access mode button
         let fileAccessButton = inputRow.createEl("button", {
-            text: "File Access",
+            text: t('chat.fileAccess.button'),
             attr: {
                 class: "khoj-input-row-button clickable-icon",
-                title: "Toggle open file access",
+                title: t('chat.fileAccess.button.title.none'),
             },
         });
         // Set initial icon based on persisted setting
         switch (this.fileAccessMode) {
             case 'none':
                 setIcon(fileAccessButton, "file-x");
-                fileAccessButton.title = "Toggle open file access (No Access)";
+                fileAccessButton.title = t('chat.fileAccess.button.title.none');
                 break;
             case 'write':
                 setIcon(fileAccessButton, "file-edit");
-                fileAccessButton.title = "Toggle open file access (Read & Write)";
+                fileAccessButton.title = t('chat.fileAccess.button.title.write');
                 break;
             case 'read':
             default:
                 setIcon(fileAccessButton, "file-search");
-                fileAccessButton.title = "Toggle open file access (Read Only)";
+                fileAccessButton.title = t('chat.fileAccess.button.title.read');
                 break;
         }
         fileAccessButton.addEventListener('click', async () => {
@@ -300,17 +301,17 @@ export class KhojChatView extends KhojPaneView {
                 case 'none':
                     this.fileAccessMode = 'read';
                     setIcon(fileAccessButton, "file-search");
-                    fileAccessButton.title = "Toggle open file access (Read Only)";
+                    fileAccessButton.title = t('chat.fileAccess.button.title.read');
                     break;
                 case 'read':
                     this.fileAccessMode = 'write';
                     setIcon(fileAccessButton, "file-edit");
-                    fileAccessButton.title = "Toggle open file access (Read & Write)";
+                    fileAccessButton.title = t('chat.fileAccess.button.title.write');
                     break;
                 case 'write':
                     this.fileAccessMode = 'none';
                     setIcon(fileAccessButton, "file-x");
-                    fileAccessButton.title = "Toggle open file access (No Access)";
+                    fileAccessButton.title = t('chat.fileAccess.button.title.none');
                     break;
             }
 
@@ -337,11 +338,11 @@ export class KhojChatView extends KhojPaneView {
         this.contentEl.addEventListener('keyup', this.handleKeyUp.bind(this));
 
         let transcribe = inputRow.createEl("button", {
-            text: "Transcribe",
+            text: t('chat.transcribe.button'),
             attr: {
                 id: "khoj-transcribe",
                 class: "khoj-transcribe khoj-input-row-button clickable-icon ",
-                title: "Hold to Voice Chat (Ctrl+Alt+V)",
+                title: t('chat.transcribe.button.title'),
             },
         })
         transcribe.addEventListener('mousedown', (event) => { this.startSpeechToText(event) });
@@ -352,7 +353,7 @@ export class KhojChatView extends KhojPaneView {
         setIcon(transcribe, "mic");
 
         let send = inputRow.createEl("button", {
-            text: "Send",
+            text: t('chat.send.button'),
             attr: {
                 id: "khoj-chat-send",
                 class: "khoj-chat-send khoj-input-row-button clickable-icon",
@@ -365,7 +366,7 @@ export class KhojChatView extends KhojPaneView {
         // Get chat history from Khoj backend and set chat input state
         let getChatHistorySucessfully = await this.getChatHistory(chatBodyEl);
 
-        let placeholderText: string = getChatHistorySucessfully ? this.startingMessage : "Configure Khoj to enable chat";
+        let placeholderText: string = getChatHistorySucessfully ? this.startingMessage : t('chat.input.placeholder.configuring');
         chatInput.placeholder = placeholderText;
         chatInput.disabled = !getChatHistorySucessfully;
         this.autoResize();
@@ -853,14 +854,14 @@ export class KhojChatView extends KhojPaneView {
     renderActionButtons(message: string, chatMessageBodyTextEl: HTMLElement, isSystemMessage: boolean = false) {
         let copyButton = this.contentEl.createEl('button');
         copyButton.classList.add("chat-action-button");
-        copyButton.title = "Copy Message to Clipboard";
+        copyButton.title = t('chat.action.copy');
         setIcon(copyButton, "copy-plus");
         copyButton.addEventListener('click', createCopyParentText(message));
 
         // Add button to paste into current buffer
         let pasteToFile = this.contentEl.createEl('button');
         pasteToFile.classList.add("chat-action-button");
-        pasteToFile.title = "Paste Message to File";
+        pasteToFile.title = t('chat.action.paste');
         setIcon(pasteToFile, "clipboard-paste");
         pasteToFile.addEventListener('click', (event) => { pasteTextAtCursor(createCopyParentText(message, 'clipboard-paste')(event)); });
 
@@ -869,7 +870,7 @@ export class KhojChatView extends KhojPaneView {
         if (!isSystemMessage && chatMessageBodyTextEl.closest('.khoj-chat-message.you')) {
             editButton = this.contentEl.createEl('button');
             editButton.classList.add("chat-action-button");
-            editButton.title = "Edit Message";
+            editButton.title = t('chat.action.edit');
             setIcon(editButton, "edit-3");
             editButton.addEventListener('click', async () => {
                 const messageEl = chatMessageBodyTextEl.closest('.khoj-chat-message');
@@ -913,13 +914,13 @@ export class KhojChatView extends KhojPaneView {
         if (!isSystemMessage) {
             deleteButton = this.contentEl.createEl('button');
             deleteButton.classList.add("chat-action-button");
-            deleteButton.title = "Delete Message";
+            deleteButton.title = t('chat.action.delete');
             setIcon(deleteButton, "trash-2");
             deleteButton.addEventListener('click', () => {
                 const messageEl = chatMessageBodyTextEl.closest('.khoj-chat-message');
                 if (messageEl) {
                     // Ask for confirmation before deleting
-                    if (confirm('Are you sure you want to delete this message?')) {
+                    if (confirm(t('chat.action.delete.confirm'))) {
                         this.deleteMessage(messageEl as HTMLElement);
                     }
                 }
@@ -938,7 +939,7 @@ export class KhojChatView extends KhojPaneView {
             // Create a speech button icon to play the message out loud
             let speechButton = this.contentEl.createEl('button');
             speechButton.classList.add("chat-action-button", "speech-button");
-            speechButton.title = "Listen to Message";
+            speechButton.title = t('chat.action.listen');
             setIcon(speechButton, "speech")
             speechButton.addEventListener('click', (event) => this.textToSpeech(message, event));
             chatMessageBodyTextEl.append(speechButton);
@@ -1027,15 +1028,15 @@ export class KhojChatView extends KhojPaneView {
         const sidePanelEl = chatBodyEl.createDiv("side-panel");
         const newConversationEl = sidePanelEl.createDiv("new-conversation");
         const conversationHeaderTitleEl = newConversationEl.createDiv("conversation-header-title");
-        conversationHeaderTitleEl.textContent = "Conversations";
+        conversationHeaderTitleEl.textContent = t('chat.conversations.title');
 
         const newConversationButtonEl = newConversationEl.createEl("button");
         newConversationButtonEl.classList.add("new-conversation-button");
         newConversationButtonEl.classList.add("side-panel-button");
         newConversationButtonEl.addEventListener('click', (_) => this.createNewConversation(this.currentAgent));
         setIcon(newConversationButtonEl, "plus");
-        newConversationButtonEl.innerHTML += "New";
-        newConversationButtonEl.title = "New Conversation (Ctrl+Alt+N)";
+        newConversationButtonEl.innerHTML += t('chat.conversations.new');
+        newConversationButtonEl.title = t('chat.newChat.button.title');
 
         const existingConversationsEl = sidePanelEl.createDiv("existing-conversations");
         const conversationListEl = existingConversationsEl.createDiv("conversation-list");
@@ -1105,7 +1106,7 @@ export class KhojChatView extends KhojPaneView {
 
         let editConversationTitleButtonEl = this.contentEl.createEl('button');
         setIcon(editConversationTitleButtonEl, "edit");
-        editConversationTitleButtonEl.title = "Rename";
+        editConversationTitleButtonEl.title = t('chat.conversations.rename');
         editConversationTitleButtonEl.classList.add("edit-title-button", "three-dot-menu-button-item", "clickable-icon");
         if (selectedConversation) editConversationTitleButtonEl.classList.add("selected-conversation");
         editConversationTitleButtonEl.addEventListener('click', (event) => {
@@ -1133,7 +1134,7 @@ export class KhojChatView extends KhojPaneView {
             });
             let editConversationTitleSaveButtonEl = this.contentEl.createEl('button');
             conversationSessionTitleEl.replaceWith(editConversationTitleInputEl);
-            editConversationTitleSaveButtonEl.innerHTML = "Save";
+            editConversationTitleSaveButtonEl.innerHTML = t('chat.conversations.save');
             editConversationTitleSaveButtonEl.classList.add("three-dot-menu-button-item", "clickable-icon");
             if (selectedConversation) editConversationTitleSaveButtonEl.classList.add("selected-conversation");
             editConversationTitleSaveButtonEl.addEventListener('click', (event) => {
@@ -1180,12 +1181,12 @@ export class KhojChatView extends KhojPaneView {
 
         let deleteConversationButtonEl = this.contentEl.createEl('button');
         setIcon(deleteConversationButtonEl, "trash");
-        deleteConversationButtonEl.title = "Delete";
+        deleteConversationButtonEl.title = t('chat.conversations.delete');
         deleteConversationButtonEl.classList.add("delete-conversation-button", "three-dot-menu-button-item", "clickable-icon");
         if (selectedConversation) deleteConversationButtonEl.classList.add("selected-conversation");
         deleteConversationButtonEl.addEventListener('click', () => {
             // Ask for confirmation before deleting chat session
-            let confirmation = confirm('Are you sure you want to delete this chat session?');
+            let confirmation = confirm(t('chat.conversations.delete.confirm'));
             if (!confirmation) return;
             let deleteURL = `/api/chat/history?client=obsidian&conversation_id=${incomingConversationId}`;
             fetch(`${this.setting.khojUrl}${deleteURL}`, { method: "DELETE", headers })
@@ -2245,14 +2246,14 @@ export class KhojChatView extends KhojPaneView {
 
             // Add appropriate status class based on success/failure
             if (successCount === editResults.length) {
-                statusSummary.innerHTML = `All edits applied successfully`;
+                statusSummary.innerHTML = t('chat.edit.success');
                 statusSummary.addClass("success");
             } else if (successCount === 0) {
-                statusSummary.innerHTML = `No edits were applied`;
+                statusSummary.innerHTML = t('chat.edit.failed');
                 statusSummary.addClass("error");
             } else {
                 // This should not happen with atomic approach, but keeping for safety
-                statusSummary.innerHTML = `${successCount}/${editResults.length} edits applied successfully`;
+                statusSummary.innerHTML = `${successCount}/${editResults.length} ${t('chat.edit.partial')}`;
                 statusSummary.addClass(successCount > 0 ? "success" : "error");
             }
 
@@ -2267,18 +2268,18 @@ export class KhojChatView extends KhojPaneView {
                         return `• ${r.block.note}: ${r.error}`;
                     })
                     .join('\n');
-                statusSummary.title = `Failed edits:\n${errorDetails}`;
+                statusSummary.title = `${t('chat.edit.failedDetails')}:\n${errorDetails}`;
             }
 
             // Create Apply button
             const applyButton = buttonsContainer.createEl("button", {
-                text: "Apply",
+                text: t('chat.edit.apply'),
                 cls: ["edit-confirm-button", "edit-apply-button"],
             });
 
             // Create Cancel button
             const cancelButton = buttonsContainer.createEl("button", {
-                text: "Cancel",
+                text: t('chat.edit.cancel'),
                 cls: ["edit-confirm-button", "edit-cancel-button"],
             });
 
@@ -2316,12 +2317,12 @@ export class KhojChatView extends KhojPaneView {
                 }
 
                 const successMessage = lastMessage.createDiv({ cls: "edit-status-message success" });
-                successMessage.textContent = "Changes applied successfully";
+                successMessage.textContent = t('chat.edit.success');
                 setTimeout(() => successMessage.remove(), 3000);
             } catch (error) {
                 console.error("Error applying changes:", error);
                 const errorMessage = lastMessage.createDiv({ cls: "edit-status-message error" });
-                errorMessage.textContent = "Error applying changes";
+                errorMessage.textContent = t('chat.edit.error.apply');
                 setTimeout(() => errorMessage.remove(), 3000);
             } finally {
                 buttonsContainer.remove();
@@ -2337,12 +2338,12 @@ export class KhojChatView extends KhojPaneView {
                     }
                 }
                 const successMessage = lastMessage.createDiv({ cls: "edit-status-message success" });
-                successMessage.textContent = "Changes cancelled successfully";
+                successMessage.textContent = t('chat.edit.cancel.success');
                 setTimeout(() => successMessage.remove(), 3000);
             } catch (error) {
                 console.error("Error cancelling changes:", error);
                 const errorMessage = lastMessage.createDiv({ cls: "edit-status-message error" });
-                errorMessage.textContent = "Error cancelling changes";
+                errorMessage.textContent = t('chat.edit.error.cancel');
                 setTimeout(() => errorMessage.remove(), 3000);
             } finally {
                 buttonsContainer.remove();
@@ -2429,12 +2430,12 @@ export class KhojChatView extends KhojPaneView {
         setIcon(retryIcon, "refresh-cw");
 
         // Add main text - keep it focused only on retry action
-        retryBadge.createSpan({ text: "Try again to apply changes" });
+        retryBadge.createSpan({ text: t('chat.retry.tryAgain') });
 
         // Add retry count
         retryBadge.createSpan({
             cls: "retry-count",
-            text: `Attempt ${this.editRetryCount}/${this.maxEditRetries}`
+            text: t('chat.retry.attempt').replace('{attempt}', this.editRetryCount.toString()).replace('{max}', this.maxEditRetries.toString())
         });
 
         // Add error details as a tooltip

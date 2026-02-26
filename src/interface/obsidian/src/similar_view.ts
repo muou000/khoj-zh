@@ -2,6 +2,7 @@ import { WorkspaceLeaf, TFile, MarkdownRenderer, Notice, setIcon } from 'obsidia
 import { KhojPaneView } from 'src/pane_view';
 import { KhojView, getLinkToEntry, supportedBinaryFileTypes } from 'src/utils';
 import Khoj from 'src/main';
+import { t } from 'src/i18n';
 
 export interface SimilarResult {
     entry: string;
@@ -30,7 +31,7 @@ export class KhojSimilarView extends KhojPaneView {
     }
 
     getDisplayText(): string {
-        return "Khoj Similar Documents";
+        return t('view.similar.title');
     }
 
     getIcon(): string {
@@ -52,7 +53,7 @@ export class KhojSimilarView extends KhojPaneView {
             cls: "khoj-similar-search-input",
             attr: {
                 type: "text",
-                placeholder: "Search or use current file"
+                placeholder: t('similar.search.placeholder')
             }
         });
 
@@ -61,7 +62,7 @@ export class KhojSimilarView extends KhojPaneView {
             cls: "khoj-similar-refresh-button"
         });
         setIcon(refreshButtonEl, "refresh-cw");
-        refreshButtonEl.createSpan({ text: "Refresh" });
+        refreshButtonEl.createSpan({ text: t('similar.refresh.button') });
         refreshButtonEl.addEventListener("click", () => {
             this.updateSimilarDocuments();
         });
@@ -261,7 +262,9 @@ export class KhojSimilarView extends KhojPaneView {
         // Show results count
         this.resultsContainerEl.createEl("div", {
             cls: "khoj-results-count",
-            text: `Found ${results.length} similar document${results.length > 1 ? 's' : ''}`
+            text: results.length === 1
+                ? t('similar.results.count.singular')
+                : t('similar.results.count.plural').replace('{count}', results.length.toString())
         });
 
         // Create results list
@@ -287,7 +290,7 @@ export class KhojSimilarView extends KhojPaneView {
             // Add indicator for files not in vault
             if (!result.inVault) {
                 fileEl.createSpan({
-                    text: " (not in vault)",
+                    text: t('similar.fileNotInVault'),
                     cls: "khoj-result-file-status"
                 });
             }
@@ -296,7 +299,7 @@ export class KhojSimilarView extends KhojPaneView {
             const moreContextButton = headerEl.createEl("button", {
                 cls: "khoj-more-context-button"
             });
-            moreContextButton.createSpan({ text: "More context" });
+            moreContextButton.createSpan({ text: t('chat.reference.moreContext') });
             setIcon(moreContextButton.createSpan(), "chevron-down");
 
             // Create content element (hidden by default)
@@ -333,13 +336,13 @@ export class KhojSimilarView extends KhojPaneView {
                     contentEl.classList.remove("khoj-similar-content-hidden");
                     contentEl.classList.add("khoj-similar-content-visible");
                     moreContextButton.empty();
-                    moreContextButton.createSpan({ text: "Less context" });
+                    moreContextButton.createSpan({ text: t('chat.reference.lessContext') });
                     setIcon(moreContextButton.createSpan(), "chevron-up");
                 } else {
                     contentEl.classList.remove("khoj-similar-content-visible");
                     contentEl.classList.add("khoj-similar-content-hidden");
                     moreContextButton.empty();
-                    moreContextButton.createSpan({ text: "More context" });
+                    moreContextButton.createSpan({ text: t('chat.reference.moreContext') });
                     setIcon(moreContextButton.createSpan(), "chevron-down");
                 }
             });
@@ -363,7 +366,7 @@ export class KhojSimilarView extends KhojPaneView {
     async openResult(result: SimilarResult) {
         // Only open files that are in the vault
         if (!result.inVault) {
-            new Notice("This file is not in your vault");
+            new Notice(t('similar.fileNotInVaultNotice'));
             return;
         }
 
@@ -413,19 +416,19 @@ export class KhojSimilarView extends KhojPaneView {
                 // Loading is handled by the loading spinner
                 break;
             case "no-file":
-                messageEl.setText("No file is currently open. Open a markdown file to see similar documents.");
+                messageEl.setText(t('similar.message.noFile'));
                 break;
             case "unsupported-file":
-                messageEl.setText("This file type is not supported. Only markdown files are supported.");
+                messageEl.setText(t('similar.message.unsupportedFile'));
                 break;
             case "no-results":
-                messageEl.setText("No similar documents found.");
+                messageEl.setText(t('similar.message.noResults'));
                 break;
             case "error":
-                messageEl.setText(`Error: ${message || "Failed to fetch similar documents"}`);
+                messageEl.setText(t('similar.message.error').replace('{message}', message || t('chat.error.failed')));
                 break;
             case "empty-query":
-                messageEl.setText("Please enter a search query or open a markdown file.");
+                messageEl.setText(t('similar.message.emptyQuery'));
                 break;
         }
     }

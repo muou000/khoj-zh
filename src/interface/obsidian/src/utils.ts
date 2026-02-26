@@ -2,6 +2,7 @@ import { FileSystemAdapter, Notice, Vault, Modal, TFile, request, setIcon, Edito
 import { KhojSetting, ModelOption, ServerUserConfig, UserInfo } from 'src/settings'
 import { deleteContentByType, uploadContentBatch } from './api';
 import { KhojSearchModal } from './search_modal';
+import { t } from 'src/i18n';
 
 export function getVaultAbsolutePath(vault: Vault): string {
     let adaptor = vault.adapter;
@@ -189,8 +190,8 @@ export async function updateContentIndex(
                 await deleteContentByType(setting.khojUrl, setting.khojApiKey, contentType);
             }
         } catch (err) {
-            console.error('Khoj: Error deleting content types:', err);
-            error_message = "❗️Failed to clear existing content index";
+            console.error(t('utils.console.errorDeleteContentTypes'), err);
+            error_message = t('utils.console.couldNotConnectToKhoj');
             fileData = [];
         }
     }
@@ -214,11 +215,11 @@ export async function updateContentIndex(
                 onProgress({ processed: processedFiles, total: totalFiles });
             }
         } catch (err: any) {
-            console.error('Khoj: Failed to upload batch:', err);
+            console.error(t('utils.console.failedUploadBatch'), err);
             if (err.message?.includes('429')) {
-                error_message = `❗️Requests were throttled. Upgrade your subscription or try again later.`;
+                error_message = t('utils.notice.throttled');
             } else {
-                error_message = `❗️Failed to sync content with Khoj server. Error: ${err.message ?? String(err)}`;
+                error_message = t('utils.notice.syncFailed').replace('{error}', err.message ?? String(err));
             }
             break;
         }
@@ -240,9 +241,9 @@ export async function updateContentIndex(
     if (error_message) {
         new Notice(error_message);
     } else {
-        const summary = `Updated ${countOfFilesToIndex}, deleted ${countOfFilesToDelete} files`;
-        if (userTriggered) new Notice(`✅ ${summary}`);
-        console.log(`✅ Refreshed Khoj content index. ${summary}.`);
+        const summary = t('utils.notice.syncComplete').replace('{index}', countOfFilesToIndex.toString()).replace('{delete}', countOfFilesToDelete.toString());
+        if (userTriggered) new Notice(t('utils.notice.syncComplete.emoji').replace('{index}', countOfFilesToIndex.toString()).replace('{delete}', countOfFilesToDelete.toString()));
+        console.log(t('utils.console.refreshedIndex').replace('{summary}', summary));
     }
 
     return lastSync;
@@ -319,17 +320,17 @@ export function getBackendStatusMessage(
 ): string {
     // Welcome message with default settings. Khoj cloud always expects an API key.
     if (!khojApiKey && khojUrl === 'https://app.khoj.dev')
-        return `🌈 Welcome to Khoj! Get your API key from ${khojUrl}/settings#clients and set it in the Khoj plugin settings on Obsidian`;
+        return t('settings.welcome.message').replace('{url}', khojUrl);
 
     if (!connectedToServer)
-        return `❗️Could not connect to Khoj at ${khojUrl}. Ensure your can access it`;
+        return t('utils.notice.cannotConnect').replace('{url}', khojUrl);
     else if (!userEmail)
-        return `✅ Connected to Khoj. ❗️Get a valid API key from ${khojUrl}/settings#clients to log in`;
+        return t('settings.error.getApiKey').replace('{url}', khojUrl);
     else if (userEmail === 'default@example.com')
         // Logged in as default user in anonymous mode
-        return `✅ Welcome back to Khoj`;
+        return t('utils.notice.welcomeBack');
     else
-        return `✅ Welcome back to Khoj, ${userEmail}`;
+        return t('utils.notice.welcomeBackEmail').replace('{email}', userEmail);
 }
 
 export async function populateHeaderPane(headerEl: Element, setting: KhojSetting, viewType: string): Promise<void> {
@@ -338,7 +339,7 @@ export async function populateHeaderPane(headerEl: Element, setting: KhojSetting
         const { userInfo: extractedUserInfo } = await canConnectToBackend(setting.khojUrl, setting.khojApiKey, false);
         userInfo = extractedUserInfo;
     } catch (error) {
-        console.error("❗️Could not connect to Khoj");
+        console.error(t('utils.console.couldNotConnectToKhoj'));
     }
 
     // Add Khoj title to header element
@@ -346,7 +347,7 @@ export async function populateHeaderPane(headerEl: Element, setting: KhojSetting
     titlePaneEl.className = 'khoj-header-title-pane';
     const titleEl = titlePaneEl.createDiv();
     titleEl.className = 'khoj-logo';
-    titleEl.textContent = "Khoj";
+    titleEl.textContent = t('app.title');
 
     // Populate the header element with the navigation pane
     // Create the nav element
@@ -371,7 +372,7 @@ export async function populateHeaderPane(headerEl: Element, setting: KhojSetting
     // Create the chat text
     const chatText = chatLink.createEl('span');
     chatText.className = 'khoj-nav-item-text';
-    chatText.textContent = 'Chat';
+    chatText.textContent = t('chat.reference.notes');
 
     // Append the chat icon and text to the chat link
     chatLink.appendChild(chatIcon);
@@ -390,7 +391,7 @@ export async function populateHeaderPane(headerEl: Element, setting: KhojSetting
     // Create the search text
     const searchText = searchLink.createEl('span');
     searchText.className = 'khoj-nav-item-text';
-    searchText.textContent = 'Search';
+    searchText.textContent = t('command.search.name');
 
     // Append the search icon and text to the search link
     searchLink.appendChild(searchIcon);
@@ -411,7 +412,7 @@ export async function populateHeaderPane(headerEl: Element, setting: KhojSetting
     // Create the similar text
     const similarText = similarLink.createEl('span');
     similarText.className = 'khoj-nav-item-text';
-    similarText.textContent = 'Similar';
+    similarText.textContent = t('command.similar.name');
 
     // Append the similar icon and text to the similar link
     similarLink.appendChild(similarIcon);
@@ -474,9 +475,9 @@ export async function populateHeaderPane(headerEl: Element, setting: KhojSetting
         // Add New Chat button
         const newChatButton = newChatEl.createEl('button');
         newChatButton.className = 'khoj-header-new-chat-button';
-        newChatButton.title = 'Start New Chat (Ctrl+Alt+N)';
+        newChatButton.title = t('chat.newChat.button.title');
         setIcon(newChatButton, 'plus-circle');
-        newChatButton.textContent = 'New Chat';
+        newChatButton.textContent = t('chat.newChat.button');
 
         // Add event listener to the New Chat button
         newChatButton.addEventListener('click', () => {
@@ -641,13 +642,13 @@ export async function calculateVaultSyncMetrics(vault: Vault, setting: KhojSetti
             }
         } catch (err) {
             // Defensive: on any unexpected error, fall back to free limit
-            console.warn('Khoj: Error reading userInfo.is_active, defaulting to free limit', err);
+            console.warn(t('utils.console.errorReadingUserInfo'), err);
             totalBytes = FREE_LIMIT;
         }
 
         return { usedBytes, totalBytes };
     } catch (err) {
-        console.error('Khoj: Error calculating vault sync metrics:', err);
+        console.error(t('utils.console.errorCalculatingVaultSyncMetrics'), err);
         return { usedBytes: 0, totalBytes: 10 * 1024 * 1024 };
     }
 }
@@ -670,10 +671,10 @@ export async function fetchChatModels(settings: KhojSetting): Promise<ModelOptio
                 }));
             }
         } else {
-            console.warn("Khoj: Failed to fetch chat models:", response.statusText);
+            console.warn(t('utils.console.failedToFetchChatModels'), response.statusText);
         }
     } catch (error) {
-        console.error("Khoj: Error fetching chat models:", error);
+        console.error(t('utils.console.errorFetchingChatModels'), error);
     }
     return [];
 }
@@ -690,17 +691,17 @@ export async function fetchUserServerSettings(settings: KhojSetting): Promise<Se
         if (response.ok) {
             return await response.json() as ServerUserConfig;
         } else {
-            console.warn("Khoj: Failed to fetch user server settings:", response.statusText);
+            console.warn(t('utils.console.failedToFetchUserServerSettings'), response.statusText);
         }
     } catch (error) {
-        console.error("Khoj: Error fetching user server settings:", error);
+        console.error(t('utils.console.errorFetchingUserServerSettings'), error);
     }
     return null;
 }
 
 export async function updateServerChatModel(modelId: string, settings: KhojSetting): Promise<boolean> {
     if (!settings.connectedToBackend || !settings.khojUrl) {
-        new Notice("️⛔️ Connect to Khoj to update chat model.");
+        new Notice(t('settings.notice.updateChatModel'));
         return false;
     }
 
@@ -714,12 +715,12 @@ export async function updateServerChatModel(modelId: string, settings: KhojSetti
             return true;
         } else {
             const errorData = await response.text();
-            new Notice(`️⛔️ Failed to update chat model on server: ${response.status} ${errorData}`);
+            new Notice(t('settings.notice.failedUpdateChatModel').replace('{status}', response.status.toString()).replace('{error}', errorData));
             console.error("Khoj: Failed to update chat model:", response.status, errorData);
             return false;
         }
     } catch (error) {
-        new Notice("️⛔️ Error updating chat model on server. See console.");
+        new Notice(t('settings.notice.errorUpdateChatModel'));
         console.error("Khoj: Error updating chat model:", error);
         return false;
     }

@@ -1,6 +1,7 @@
 import { App, Notice, PluginSettingTab, Setting, TFile, SuggestModal } from 'obsidian';
 import Khoj from 'src/main';
 import { canConnectToBackend, fetchChatModels, fetchUserServerSettings, getBackendStatusMessage, updateContentIndex, updateServerChatModel } from './utils';
+import { t } from 'src/i18n';
 
 export interface UserInfo {
     username?: string;
@@ -92,7 +93,7 @@ export class KhojSettingTab extends PluginSettingTab {
 
         const connectHeaderEl = containerEl.createEl('h3', { title: backendStatusMessage });
         const connectHeaderContentEl = connectHeaderEl.createSpan({ cls: 'khoj-connect-settings-header' });
-        const connectTitleEl = connectHeaderContentEl.createSpan({ text: 'Connect' });
+        const connectTitleEl = connectHeaderContentEl.createSpan({ text: t('settings.section.connect') });
         const backendStatusEl = connectTitleEl.createSpan({ text: this.connectStatusIcon(), cls: 'khoj-connect-settings-header-status' });
         if (this.plugin.settings.userInfo && this.plugin.settings.connectedToBackend) {
             if (this.plugin.settings.userInfo.photo) {
@@ -118,7 +119,7 @@ export class KhojSettingTab extends PluginSettingTab {
 
         // Add khoj settings configurable from the plugin settings tab
         const apiKeySetting = new Setting(containerEl)
-            .setName('Khoj API Key')
+            .setName(t('settings.apiKey.name'))
             .addText(text => text
                 .setValue(`${this.plugin.settings.khojApiKey}`)
                 .onChange(async (value) => {
@@ -141,17 +142,17 @@ export class KhojSettingTab extends PluginSettingTab {
 
         // Add API key setting description with link to get API key
         apiKeySetting.descEl.createEl('span', {
-            text: 'Connect your Khoj Cloud account. ',
+            text: t('settings.apiKey.description'),
         });
         apiKeySetting.descEl.createEl('a', {
-            text: 'Get your API Key',
+            text: t('settings.apiKey.getLink'),
             href: `${this.plugin.settings.khojUrl}/settings#clients`,
             attr: { target: '_blank' }
         });
 
         new Setting(containerEl)
-            .setName('Khoj URL')
-            .setDesc('The URL of the Khoj backend.')
+            .setName(t('settings.url.name'))
+            .setDesc(t('settings.url.description'))
             .addText(text => text
                 .setValue(`${this.plugin.settings.khojUrl}`)
                 .onChange(async (value) => {
@@ -173,7 +174,7 @@ export class KhojSettingTab extends PluginSettingTab {
                 }));
 
         // Interact section
-        containerEl.createEl('h3', { text: 'Interact' });
+        containerEl.createEl('h3', { text: t('settings.section.interact') });
 
         // Chat Model Dropdown
         this.renderChatModelDropdown();
@@ -188,8 +189,8 @@ export class KhojSettingTab extends PluginSettingTab {
 
         // Add new setting for auto voice response after voice input
         new Setting(containerEl)
-            .setName('Auto Voice Response')
-            .setDesc('Automatically read responses after voice messages')
+            .setName(t('settings.autoVoiceResponse.name'))
+            .setDesc(t('settings.autoVoiceResponse.description'))
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.autoVoiceResponse)
                 .onChange(async (value) => {
@@ -198,8 +199,8 @@ export class KhojSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Results Count')
-            .setDesc('The number of results to show in search and use for chat.')
+            .setName(t('settings.resultsCount.name'))
+            .setDesc(t('settings.resultsCount.description'))
             .addSlider(slider => slider
                 .setLimits(1, 30, 1)
                 .setValue(this.plugin.settings.resultsCount)
@@ -210,11 +211,11 @@ export class KhojSettingTab extends PluginSettingTab {
                 }));
 
         // Add new "Sync" heading
-        containerEl.createEl('h3', { text: 'Sync' });
+        containerEl.createEl('h3', { text: t('settings.section.sync') });
 
         new Setting(containerEl)
-            .setName('Auto Sync')
-            .setDesc('Automatically index your vault with Khoj.')
+            .setName(t('settings.autoSync.name'))
+            .setDesc(t('settings.autoSync.description'))
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.autoConfigure)
                 .onChange(async (value) => {
@@ -224,8 +225,8 @@ export class KhojSettingTab extends PluginSettingTab {
 
         // Add setting to sync markdown notes
         new Setting(containerEl)
-            .setName('Sync Notes')
-            .setDesc('Index Markdown files in your vault with Khoj.')
+            .setName(t('settings.syncNotes.name'))
+            .setDesc(t('settings.syncNotes.description'))
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.syncFileType.markdown)
                 .onChange(async (value) => {
@@ -236,8 +237,8 @@ export class KhojSettingTab extends PluginSettingTab {
 
         // Add setting to sync images
         new Setting(containerEl)
-            .setName('Sync Images')
-            .setDesc('Index images in your vault with Khoj.')
+            .setName(t('settings.syncImages.name'))
+            .setDesc(t('settings.syncImages.description'))
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.syncFileType.images)
                 .onChange(async (value) => {
@@ -248,8 +249,8 @@ export class KhojSettingTab extends PluginSettingTab {
 
         // Add setting to sync PDFs
         new Setting(containerEl)
-            .setName('Sync PDFs')
-            .setDesc('Index PDF files in your vault with Khoj.')
+            .setName(t('settings.syncPdfs.name'))
+            .setDesc(t('settings.syncPdfs.description'))
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.syncFileType.pdf)
                 .onChange(async (value) => {
@@ -261,15 +262,15 @@ export class KhojSettingTab extends PluginSettingTab {
         // Add setting for sync interval
         const syncIntervalValues = [1, 5, 10, 20, 30, 45, 60, 120, 1440];
         new Setting(containerEl)
-            .setName('Sync Interval')
-            .setDesc('Minutes between automatic synchronizations')
+            .setName(t('settings.syncInterval.name'))
+            .setDesc(t('settings.syncInterval.description'))
             .addDropdown(dropdown => dropdown
                 .addOptions(Object.fromEntries(
                     syncIntervalValues.map(value => [
                         value.toString(),
-                        value === 1 ? '1 minute' :
-                            value === 1440 ? '24 hours' :
-                                `${value} minutes`
+                        value === 1 ? t('settings.syncInterval.option.1') :
+                            value === 1440 ? t('settings.syncInterval.option.1440') :
+                                t('settings.syncInterval.option.minutes').replace('{value}', value.toString())
                     ])
                 ))
                 .setValue(this.plugin.settings.syncInterval.toString())
@@ -283,10 +284,10 @@ export class KhojSettingTab extends PluginSettingTab {
         // Add setting to manage include folders
         const includeFoldersContainer = containerEl.createDiv('include-folders-container');
         new Setting(includeFoldersContainer)
-            .setName('Include Folders')
-            .setDesc('Folders to sync (leave empty to sync entire vault)')
+            .setName(t('settings.includeFolders.name'))
+            .setDesc(t('settings.includeFolders.description'))
             .addButton(button => button
-                .setButtonText('Add Folder')
+                .setButtonText(t('settings.includeFolders.button.add'))
                 .onClick(() => {
                     const modal = new FolderSuggestModal(this.app, async (folder: string) => {
                         if (!this.plugin.settings.syncFolders.includes(folder)) {
@@ -306,15 +307,15 @@ export class KhojSettingTab extends PluginSettingTab {
         // Add setting to manage exclude folders
         const excludeFoldersContainer = containerEl.createDiv('exclude-folders-container');
         new Setting(excludeFoldersContainer)
-            .setName('Exclude Folders')
-            .setDesc('Folders to exclude from sync (takes precedence over includes)')
+            .setName(t('settings.excludeFolders.name'))
+            .setDesc(t('settings.excludeFolders.description'))
             .addButton(button => button
-                .setButtonText('Add Folder')
+                .setButtonText(t('settings.excludeFolders.button.add'))
                 .onClick(() => {
                     const modal = new FolderSuggestModal(this.app, async (folder: string) => {
                         // Don't allow excluding root folder
                         if (folder === '') {
-                            new Notice('Cannot exclude the root folder');
+                            new Notice(t('settings.excludeFolders.cannotExcludeRoot'));
                             return;
                         }
                         if (!this.plugin.settings.excludeFolders.includes(folder)) {
@@ -333,35 +334,27 @@ export class KhojSettingTab extends PluginSettingTab {
 
         let indexVaultSetting = new Setting(containerEl);
         indexVaultSetting
-            .setName('Force Sync')
-            .setDesc('Manually force Khoj to re-index your Obsidian Vault.')
+            .setName(t('settings.forceSync.name'))
+            .setDesc(t('settings.forceSync.description'))
             .addButton(button => button
-                .setButtonText('Update')
+                .setButtonText(t('settings.forceSync.button'))
                 .setCta()
                 .onClick(async () => {
                     // Disable button while updating index
-                    button.setButtonText('Updating 🌑');
+                    button.setButtonText(t('settings.forceSync.button.updating') + ' 🌑');
                     button.removeCta();
                     indexVaultSetting = indexVaultSetting.setDisabled(true);
 
                     // Show indicator for indexing in progress (animated text)
                     const progress_indicator = window.setInterval(() => {
-                        if (button.buttonEl.innerText === 'Updating 🌑') {
-                            button.setButtonText('Updating 🌘');
-                        } else if (button.buttonEl.innerText === 'Updating 🌘') {
-                            button.setButtonText('Updating 🌗');
-                        } else if (button.buttonEl.innerText === 'Updating 🌗') {
-                            button.setButtonText('Updating 🌖');
-                        } else if (button.buttonEl.innerText === 'Updating 🌖') {
-                            button.setButtonText('Updating 🌕');
-                        } else if (button.buttonEl.innerText === 'Updating 🌕') {
-                            button.setButtonText('Updating 🌔');
-                        } else if (button.buttonEl.innerText === 'Updating 🌔') {
-                            button.setButtonText('Updating 🌓');
-                        } else if (button.buttonEl.innerText === 'Updating 🌓') {
-                            button.setButtonText('Updating 🌒');
-                        } else if (button.buttonEl.innerText === 'Updating 🌒') {
-                            button.setButtonText('Updating 🌑');
+                        const updatingPrefix = t('settings.forceSync.button.updating') + ' ';
+                        if (button.buttonEl.innerText.startsWith(updatingPrefix)) {
+                            // Keep the updating prefix with different moon phases
+                            const currentPhase = button.buttonEl.innerText.replace(updatingPrefix, '');
+                            const phases = ['🌑', '🌘', '🌗', '🌖', '🌕', '🌔', '🌓', '🌒'];
+                            const currentIndex = phases.indexOf(currentPhase);
+                            const nextIndex = (currentIndex + 1) % phases.length;
+                            button.setButtonText(updatingPrefix + phases[nextIndex]);
                         }
                     }, 300);
                     this.plugin.registerInterval(progress_indicator);
@@ -373,7 +366,7 @@ export class KhojSettingTab extends PluginSettingTab {
                     if (syncProgressEl && syncProgressText) {
                         syncProgressEl.style.display = '';
                         syncProgressText.style.display = '';
-                        syncProgressText.textContent = 'Preparing files...';
+                        syncProgressText.textContent = t('settings.forceSync.progress.preparing');
                         syncProgressEl.value = 0;
                         syncProgressEl.max = 1;
                     }
@@ -384,7 +377,7 @@ export class KhojSettingTab extends PluginSettingTab {
                         if (!el || !txt) return;
                         el.max = Math.max(progress.total, 1);
                         el.value = Math.min(progress.processed, el.max);
-                        txt.textContent = `Syncing... ${progress.processed} / ${progress.total} files`;
+                        txt.textContent = t('settings.forceSync.progress.syncing').replace('{processed}', progress.processed.toString()).replace('{total}', progress.total.toString());
                     };
 
                     try {
@@ -409,8 +402,8 @@ export class KhojSettingTab extends PluginSettingTab {
             );
         // Estimated Cloud Storage (client-side)
         const storageSetting = new Setting(containerEl)
-            .setName('Estimated Cloud Storage')
-            .setDesc('Estimated storage usage based on files configured for sync. This is a client-side estimation.')
+            .setName(t('settings.storage.name'))
+            .setDesc(t('settings.storage.description'))
             .then(() => { });
 
         // Create custom elements: progress and text for storage estimation
@@ -419,7 +412,7 @@ export class KhojSettingTab extends PluginSettingTab {
         this.storageProgressEl.max = 1;
         this.storageProgressEl.style.width = '100%';
         this.storageProgressText = document.createElement('span');
-        this.storageProgressText.textContent = 'Calculating...';
+        this.storageProgressText.textContent = t('settings.storage.calculating');
         storageSetting.descEl.appendChild(this.storageProgressEl);
         storageSetting.descEl.appendChild(this.storageProgressText);
 
@@ -455,7 +448,7 @@ export class KhojSettingTab extends PluginSettingTab {
 
         // Show calculating state
         this.storageProgressEl.removeAttribute('value');
-        this.storageProgressText.textContent = 'Calculating...';
+        this.storageProgressText.textContent = t('settings.storage.calculating');
         try {
             const { calculateVaultSyncMetrics } = await import('./utils');
             const metrics = await calculateVaultSyncMetrics(this.app.vault, this.plugin.settings);
@@ -468,7 +461,7 @@ export class KhojSettingTab extends PluginSettingTab {
             this.storageProgressText.textContent = `${usedStr} / ${totalStr}`;
         } catch (err) {
             console.error('Khoj: Failed to update storage display', err);
-            this.storageProgressText.textContent = 'Estimation unavailable';
+            this.storageProgressText.textContent = t('settings.storage.unavailable');
         }
     }
 
@@ -510,7 +503,7 @@ export class KhojSettingTab extends PluginSettingTab {
     private renderChatModelDropdown() {
         if (!this.chatModelSetting) {
             this.chatModelSetting = new Setting(this.containerEl)
-                .setName('Chat Model');
+                .setName(t('settings.chatModel.name'));
         } else {
             // Clear previous description and controls to prepare for re-rendering
             this.chatModelSetting.descEl.empty();
@@ -520,26 +513,26 @@ export class KhojSettingTab extends PluginSettingTab {
         const modelSetting = this.chatModelSetting;
 
         if (!this.plugin.settings.connectedToBackend) {
-            modelSetting.setDesc('Connect to Khoj to load and set chat model options.');
-            modelSetting.addText(text => text.setValue("Not connected").setDisabled(true));
+            modelSetting.setDesc(t('settings.chatModel.description.disconnected'));
+            modelSetting.addText(text => text.setValue(t('settings.chatModel.text.notConnected')).setDisabled(true));
             return;
         }
 
         if (this.plugin.settings.availableChatModels.length === 0 && this.plugin.settings.connectedToBackend) {
-            modelSetting.setDesc('Fetching models or no models available. Check Khoj connection or try refreshing.');
+            modelSetting.setDesc(t('settings.chatModel.description.fetching'));
             modelSetting.addButton(button => button
-                .setButtonText('Refresh Models')
+                .setButtonText(t('settings.chatModel.button.refresh'))
                 .onClick(async () => {
-                    button.setButtonText('Refreshing...').setDisabled(true);
+                    button.setButtonText(t('settings.chatModel.button.refreshing')).setDisabled(true);
                     await this.refreshModelsAndServerPreference();
                     // Re-rendering happens inside refreshModelsAndServerPreference
                 }));
             return;
         }
 
-        modelSetting.setDesc('The default AI model used for chat.');
+        modelSetting.setDesc(t('settings.chatModel.description.connected'));
         modelSetting.addDropdown(dropdown => {
-            dropdown.addOption('', 'Default'); // Placeholder when cannot retrieve chat model options from server.
+            dropdown.addOption('', t('settings.chatModel.option.default')); // Placeholder when cannot retrieve chat model options from server.
             this.plugin.settings.availableChatModels.forEach(model => {
                 dropdown.addOption(model.id, model.name);
             });
@@ -566,7 +559,7 @@ export class KhojSettingTab extends PluginSettingTab {
         this.updateFolderList(
             containerEl,
             this.plugin.settings.syncFolders,
-            'Including entire vault',
+            t('settings.includeFolders.empty'),
             async (folder) => {
                 this.plugin.settings.syncFolders = this.plugin.settings.syncFolders.filter(f => f !== folder);
                 await this.plugin.saveSettings();
@@ -581,7 +574,7 @@ export class KhojSettingTab extends PluginSettingTab {
         this.updateFolderList(
             containerEl,
             this.plugin.settings.excludeFolders,
-            'No folders excluded',
+            t('settings.excludeFolders.empty'),
             async (folder) => {
                 this.plugin.settings.excludeFolders = this.plugin.settings.excludeFolders.filter(f => f !== folder);
                 await this.plugin.saveSettings();
@@ -614,7 +607,7 @@ export class KhojSettingTab extends PluginSettingTab {
 
             const removeButton = item.createEl('button', {
                 cls: 'folder-list-remove',
-                text: '×'
+                text: t('settings.folderList.remove')
             });
             removeButton.addEventListener('click', () => onRemove(folder));
         });

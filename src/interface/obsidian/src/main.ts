@@ -5,6 +5,7 @@ import { KhojChatView } from 'src/chat_view'
 import { KhojSimilarView } from 'src/similar_view'
 import { updateContentIndex, canConnectToBackend, KhojView } from 'src/utils';
 import { KhojPaneView } from 'src/pane_view';
+import { t } from 'src/i18n';
 
 
 export default class Khoj extends Plugin {
@@ -17,7 +18,7 @@ export default class Khoj extends Plugin {
         // Add search command. It can be triggered from anywhere
         this.addCommand({
             id: 'search',
-            name: 'Search',
+            name: t('command.search.name'),
             hotkeys: [{ modifiers: ["Ctrl", "Alt"], key: "S" }],
             callback: () => { new KhojSearchModal(this.app, this.settings).open(); }
         });
@@ -25,7 +26,7 @@ export default class Khoj extends Plugin {
         // Add similar notes command. It can only be triggered from the editor
         this.addCommand({
             id: 'similar',
-            name: 'Find similar notes',
+            name: t('command.similar.name'),
             hotkeys: [{ modifiers: ["Ctrl", "Alt"], key: "F" }],
             editorCallback: () => { this.activateView(KhojView.SIMILAR); }
         });
@@ -33,21 +34,21 @@ export default class Khoj extends Plugin {
         // Add chat command. It can be triggered from anywhere
         this.addCommand({
             id: 'chat',
-            name: 'Chat',
+            name: t('command.chat.name'),
             callback: () => { this.activateView(KhojView.CHAT); }
         });
 
         // Add similar documents view command
         this.addCommand({
             id: 'similar-view',
-            name: 'Open Similar Documents View',
+            name: t('command.similarView.name'),
             callback: () => { this.activateView(KhojView.SIMILAR); }
         });
 
         // Add new chat command with hotkey
         this.addCommand({
             id: 'new-chat',
-            name: 'New Chat',
+            name: t('command.newChat.name'),
             hotkeys: [{ modifiers: ["Ctrl", "Alt"], key: "N" }],
             callback: async () => {
                 // First, activate the chat view
@@ -67,7 +68,7 @@ export default class Khoj extends Plugin {
         // Add conversation history command with hotkey
         this.addCommand({
             id: 'conversation-history',
-            name: 'Show Conversation History',
+            name: t('command.conversationHistory.name'),
             hotkeys: [{ modifiers: ["Ctrl", "Alt"], key: "O" }],
             callback: () => {
                 this.activateView(KhojView.CHAT).then(() => {
@@ -82,7 +83,7 @@ export default class Khoj extends Plugin {
         // Add voice capture command with hotkey
         this.addCommand({
             id: 'voice-capture',
-            name: 'Start Voice Capture',
+            name: t('command.voiceCapture.name'),
             hotkeys: [{ modifiers: ["Ctrl", "Alt"], key: "V" }],
             callback: () => {
                 this.activateView(KhojView.CHAT).then(() => {
@@ -99,7 +100,7 @@ export default class Khoj extends Plugin {
         // Add sync command to manually sync new changes
         this.addCommand({
             id: 'sync',
-            name: 'Sync new changes',
+            name: t('command.sync.name'),
             callback: async () => {
                 this.settings.lastSync = await updateContentIndex(
                     this.app.vault,
@@ -114,7 +115,7 @@ export default class Khoj extends Plugin {
         // Add edit confirmation commands
         this.addCommand({
             id: 'apply-edits',
-            name: 'Apply pending edits',
+            name: t('command.applyEdits.name'),
             hotkeys: [{ modifiers: ["Ctrl", "Shift"], key: "Enter" }],
             callback: () => {
                 const chatView = this.app.workspace.getActiveViewOfType(KhojChatView);
@@ -126,7 +127,7 @@ export default class Khoj extends Plugin {
 
         this.addCommand({
             id: 'cancel-edits',
-            name: 'Cancel pending edits',
+            name: t('command.cancelEdits.name'),
             hotkeys: [{ modifiers: ["Ctrl", "Shift"], key: "Backspace" }],
             callback: () => {
                 const chatView = this.app.workspace.getActiveViewOfType(KhojChatView);
@@ -141,7 +142,7 @@ export default class Khoj extends Plugin {
         this.registerView(KhojView.SIMILAR, (leaf) => new KhojSimilarView(leaf, this));
 
         // Create an icon in the left ribbon.
-        this.addRibbonIcon('message-circle', 'Khoj', (_: MouseEvent) => {
+        this.addRibbonIcon('message-circle', t('ribbon.title'), (_: MouseEvent) => {
             this.activateView(KhojView.CHAT);
         });
 
